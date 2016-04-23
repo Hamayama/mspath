@@ -1,7 +1,7 @@
 ;; -*- coding: utf-8 -*-
 ;;
 ;; mspath.scm
-;; 2016-4-23 v1.02
+;; 2016-4-23 v1.03
 ;;
 ;; ＜内容＞
 ;;   Gauche の REPL 上で、Windows のパス名をそのまま読み込むためのモジュールです。
@@ -38,7 +38,7 @@
        ((not path-data)
         (display "file : ") (flush)
         (if (version<=? (gauche-version) "0.9.4") (read-line))
-        (regexp-replace-all #/"/ (read-line) ""))
+        (regexp-replace-all #/\"/ (read-line) "")) ; GitHubの色表示対策=> ")
        (else
         (errorf "list or #f required, but got ~s" path-data)))
     (set! path-str (string-trim-both path-str))
