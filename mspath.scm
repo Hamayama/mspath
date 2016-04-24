@@ -1,7 +1,7 @@
 ;; -*- coding: utf-8 -*-
 ;;
 ;; mspath.scm
-;; 2016-4-23 v1.03
+;; 2016-4-25 v1.04
 ;;
 ;; ＜内容＞
 ;;   Gauche の REPL 上で、Windows のパス名をそのまま読み込むためのモジュールです。
@@ -13,7 +13,9 @@
   (use gauche.version)
   (use srfi-13) ; string-trim-both用
   (export
-    mspath msload msrun))
+    mspath msload msrun
+    msys-path msys-load msys-run
+    ))
 (select-module mspath)
 
 ;; Windows のパス名を文字列に変換する
@@ -38,9 +40,10 @@
        ((not path-data)
         (display "file : ") (flush)
         (if (version<=? (gauche-version) "0.9.4") (read-line))
-        (regexp-replace-all #/\"/ (read-line) "")) ; GitHubの色表示対策=> ")
+        (read-line))
        (else
         (errorf "list or #f required, but got ~s" path-data)))
+    (set! path-str (regexp-replace-all* path-str #/\"/ "")) ; GitHubの色表示対策 "))
     (set! path-str (string-trim-both path-str))
     ;(write path-str) (newline) (flush)
     path-str))
@@ -61,4 +64,52 @@
                         (main args)
                         0))
     0))
+
+
+;; MSYS のパス名を Windows のパス名に変換する
+;;   ・パス名は、ダブルクォートで囲って渡すこと。
+;;     例えば、以下のように変換される。
+;;       "/c/work/aaa.txt" → "C:\\work\\aaa.txt"
+;;   ・パス名を省略すると、入力待ちになる。このときは、ダブルクォートは入力不要。
+;;   ・外部プログラムの cygpath が必要
+(define (msys-path :optional (path-data #f))
+  (let1 path-str
+      (cond
+       ((not path-data)
+        (display "file : ") (flush)
+        (if (version<=? (gauche-version) "0.9.4") (read-line))
+        (read-line))
+       (else
+        (x->string path-data)))
+    (set! path-str (regexp-replace-all* path-str #/\"/ "" #/'/ "")) ; GitHubの色表示対策 "))
+    (set! path-str
+          (receive (out tempfile) (sys-mkstemp (format "~a/mspath-cygpath" (sys-tmpdir)))
+            (unwind-protect
+                (begin
+                  (close-output-port out)
+                  (sys-system (format "cygpath -w '~a' > ~a" path-str tempfile))
+                  (with-input-from-file tempfile read-line))
+              (sys-unlink tempfile))))
+    ;(write path-str) (newline) (flush)
+    path-str))
+
+;; MSYS のパス名でロードを行う
+;;   ・パス名は、ダブルクォートで囲って渡すこと。
+;;   ・パス名を省略すると、入力待ちになる。このときは、ダブルクォートは入力不要。
+;;   ・外部プログラムの cygpath が必要
+(define (msys-load :optional (path-data #f))
+  (load (msys-path path-data)))
+
+;; MSYS のパス名でロードを行い、main 手続きを実行する
+;;   ・パス名は、ダブルクォートで囲って渡すこと。
+;;   ・パス名を省略すると、入力待ちになる。このときは、ダブルクォートは入力不要。
+;;   ・外部プログラムの cygpath が必要
+(define (msys-run :optional (path-data #f) (args '()))
+  (load (msys-path path-data))
+  (if (global-variable-bound? 'user 'main)
+    (with-module user (if (procedure? main)
+                        (main args)
+                        0))
+    0))
+
 
