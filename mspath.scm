@@ -1,7 +1,7 @@
 ;; -*- coding: utf-8 -*-
 ;;
 ;; mspath.scm
-;; 2016-4-25 v1.06
+;; 2016-4-25 v1.07
 ;;
 ;; ＜内容＞
 ;;   Gauche の REPL 上で、Windows のパス名をそのまま読み込むためのモジュールです。
@@ -64,7 +64,9 @@
 
 ;; mspath でパス名を変換後、cd を行う
 (define (mscd :optional (path-data #f))
-  (sys-chdir (mspath path-data)))
+  (let1 path-str (mspath path-data)
+    (unless (equal? path-str "")
+      (sys-chdir path-str))))
 
 ;; pwd を行う (sys-getcwd の単なるエイリアス)
 (define mspwd sys-getcwd)
@@ -94,20 +96,23 @@
         (x->string path-data)))
     (set! path-str (regexp-replace-all* path-str #/\"/ "" #/'/ "")) ; GitHubの色表示対策 "))
     (set! path-str (string-trim-both path-str))
-    (set! path-str
-          (receive (out tempfile) (sys-mkstemp (format "~a/mspath-cygpath" (sys-tmpdir)))
-            (unwind-protect
-                (begin
-                  (close-output-port out)
-                  (sys-system (format "cygpath -w '~a' > ~a" path-str tempfile))
-                  (with-input-from-file tempfile read-line))
-              (sys-unlink tempfile))))
+    (unless (equal? path-str "")
+      (set! path-str
+            (receive (out tempfile) (sys-mkstemp (format "~a/mspath-cygpath" (sys-tmpdir)))
+              (unwind-protect
+                  (begin
+                    (close-output-port out)
+                    (sys-system (format "cygpath -w '~a' > ~a" path-str tempfile))
+                    (with-input-from-file tempfile read-line))
+                (sys-unlink tempfile)))))
     ;(write path-str) (newline) (flush)
     path-str))
 
 ;; msys-path でパス名を変換後、cd を行う
 (define (msys-cd :optional (path-data #f))
-  (sys-chdir (msys-path path-data)))
+  (let1 path-str (msys-path path-data)
+    (unless (equal? path-str "")
+      (sys-chdir path-str))))
 
 ;; pwd を行う (sys-getcwd の単なるエイリアス)
 (define msys-pwd sys-getcwd)
