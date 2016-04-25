@@ -24,7 +24,7 @@
   (mspath)     ; 実行すると入力待ちになります。
                ; Windows のパス名を入力すると、文字列に変換します。
                ; パス名は、ファイルをドラッグ&ドロップして入力できます(※1)。
-  (mscd)       ; mspath でパス名を入力後、cd を行います。
+  (mscd)       ; mspath でパス名を入力後、cd (sys-chdir) を行います。
   (mspwd)      ; pwd を行います (sys-getcwd の単なるエイリアスです)。
   (msload)     ; mspath でパス名を入力後、ロードを行います。
   (msrun)      ; mspath でパス名を入力後、ロードを行い、main 手続きを実行します。
@@ -33,7 +33,7 @@
   (mspath '(c:\work\aaa.txt))
                ; 引数で渡した Windows のパス名(※2)を文字列に変換します。
   (mscd   '(c:\work))
-               ; mspath でパス名を変換後、cd を行います。
+               ; mspath でパス名を変換後、cd (sys-chdir) を行います。
   (msload '(c:\work\bbb.scm))
                ; mspath でパス名を変換後、ロードを行います。
   (msrun  '(c:\work\ccc.scm))
@@ -44,7 +44,7 @@
                ; MSYS のパス名を入力すると、Windowsのパス名に変換します。
                ; パス名は、mintty 上にファイルをドラッグ&ドロップして入力できます(※3)。
                ; 実行には、外部プログラムの cygpath が必要です。
-  (msys-cd)    ; msys-path でパス名を入力後、cd を行います。
+  (msys-cd)    ; msys-path でパス名を入力後、cd (sys-chdir) を行います。
   (msys-pwd)   ; pwd を行います (sys-getcwd の単なるエイリアスです)。
   (msys-load)  ; msys-path でパス名を入力後、ロードを行います。
   (msys-run)   ; msys-path でパス名を入力後、ロードを行い、main 手続きを実行します。
@@ -54,7 +54,7 @@
                ; 引数で渡した MSYS のパス名(※4)を文字列に変換します。
                ; 実行には、外部プログラムの cygpath が必要です。
   (msys-cd   "/c/work")
-               ; msys-path でパス名を変換後、cd を行います。
+               ; msys-path でパス名を変換後、cd (sys-chdir) を行います。
   (msys-load "/c/work/bbb.scm")
                ; msys-path でパス名を変換後、ロードを行います。
   (msys-run  "/c/work/ccc.scm")
@@ -103,4 +103,4 @@
 - 2016-4-25 v1.07 空文字列の処理を追加
 
 
-(2016-4-25)
+(2016-4-26)
