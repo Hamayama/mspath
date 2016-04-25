@@ -1,7 +1,7 @@
 ;; -*- coding: utf-8 -*-
 ;;
 ;; mspath.scm
-;; 2016-4-25 v1.05
+;; 2016-4-25 v1.06
 ;;
 ;; ＜内容＞
 ;;   Gauche の REPL 上で、Windows のパス名をそのまま読み込むためのモジュールです。
@@ -13,8 +13,8 @@
   (use gauche.version)
   (use srfi-13) ; string-trim-both用
   (export
-    mspath msload msrun
-    msys-path msys-load msys-run
+    mspath    mscd    mspwd    msload    msrun
+    msys-path msys-cd msys-pwd msys-load msys-run
     ))
 (select-module mspath)
 
@@ -62,15 +62,18 @@
     ;(write path-str) (newline) (flush)
     path-str))
 
-;; Windows のパス名でロードを行う
-;;   ・パス名は、ダブルクォートではなくて '() で囲って渡す必要がある。
-;;   ・パス名を省略すると、入力待ちになる。このときは '() は入力不要。
+;; mspath でパス名を変換後、cd を行う
+(define (mscd :optional (path-data #f))
+  (sys-chdir (mspath path-data)))
+
+;; pwd を行う (sys-getcwd の単なるエイリアス)
+(define mspwd sys-getcwd)
+
+;; mspath でパス名を変換後、ロードを行う
 (define (msload :optional (path-data #f))
   (load (mspath path-data)))
 
-;; Windows のパス名でロードを行い、main 手続きを実行する
-;;   ・パス名は、ダブルクォートではなくて '() で囲って渡す必要がある。
-;;   ・パス名を省略すると、入力待ちになる。このときは '() は入力不要。
+;; mspath でパス名を変換後、ロードを行い、main 手続きを実行する
 (define (msrun :optional (path-data #f) (args '()))
   (load (mspath path-data))
   (%run-main args))
@@ -90,6 +93,7 @@
        (else
         (x->string path-data)))
     (set! path-str (regexp-replace-all* path-str #/\"/ "" #/'/ "")) ; GitHubの色表示対策 "))
+    (set! path-str (string-trim-both path-str))
     (set! path-str
           (receive (out tempfile) (sys-mkstemp (format "~a/mspath-cygpath" (sys-tmpdir)))
             (unwind-protect
@@ -101,17 +105,18 @@
     ;(write path-str) (newline) (flush)
     path-str))
 
-;; MSYS のパス名でロードを行う
-;;   ・パス名は、ダブルクォートで囲って渡すこと。
-;;   ・パス名を省略すると、入力待ちになる。このときは、ダブルクォートは入力不要。
-;;   ・外部プログラムの cygpath が必要。
+;; msys-path でパス名を変換後、cd を行う
+(define (msys-cd :optional (path-data #f))
+  (sys-chdir (msys-path path-data)))
+
+;; pwd を行う (sys-getcwd の単なるエイリアス)
+(define msys-pwd sys-getcwd)
+
+;; msys-path でパス名を変換後、ロードを行う
 (define (msys-load :optional (path-data #f))
   (load (msys-path path-data)))
 
-;; MSYS のパス名でロードを行い、main 手続きを実行する
-;;   ・パス名は、ダブルクォートで囲って渡すこと。
-;;   ・パス名を省略すると、入力待ちになる。このときは、ダブルクォートは入力不要。
-;;   ・外部プログラムの cygpath が必要。
+;; msys-path でパス名を変換後、ロードを行い、main 手続きを実行する
 (define (msys-run :optional (path-data #f) (args '()))
   (load (msys-path path-data))
   (%run-main args))
