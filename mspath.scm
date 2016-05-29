@@ -1,7 +1,7 @@
 ;; -*- coding: utf-8 -*-
 ;;
 ;; mspath.scm
-;; 2016-5-29 v1.08
+;; 2016-5-29 v1.09
 ;;
 ;; ＜内容＞
 ;;   Gauche の REPL 上で、Windows のパス名をそのまま読み込むためのモジュールです。
@@ -21,7 +21,7 @@
 
 ;; パス名の入力を待つ(内部処理用)
 (define (%read-line-path :optional (prompt #f))
-  (display (or prompt "file : ")) (flush)
+  (display (or prompt "path : ")) (flush)
   (if (version<=? (gauche-version) "0.9.4") (read-line))
   (read-line))
 
@@ -64,7 +64,7 @@
 
 ;; mspath でパス名を変換後、cd を行う
 (define (mscd :optional (path-data #f))
-  (let1 path-str (mspath path-data "path : ")
+  (let1 path-str (mspath path-data)
     (unless (equal? path-str "")
       (sys-chdir path-str))))
 
@@ -73,11 +73,11 @@
 
 ;; mspath でパス名を変換後、ロードを行う
 (define (msload :optional (path-data #f))
-  (load (mspath path-data)))
+  (load (mspath path-data "file : ")))
 
 ;; mspath でパス名を変換後、ロードを行い、main 手続きを実行する
 (define (msrun :optional (path-data #f) (args '()))
-  (load (mspath path-data))
+  (load (mspath path-data "file : "))
   (%run-main args))
 
 
@@ -110,7 +110,7 @@
 
 ;; msys-path でパス名を変換後、cd を行う
 (define (msys-cd :optional (path-data #f))
-  (let1 path-str (msys-path path-data "path : ")
+  (let1 path-str (msys-path path-data)
     (unless (equal? path-str "")
       (sys-chdir path-str))))
 
@@ -119,11 +119,11 @@
 
 ;; msys-path でパス名を変換後、ロードを行う
 (define (msys-load :optional (path-data #f))
-  (load (msys-path path-data)))
+  (load (msys-path path-data "file : ")))
 
 ;; msys-path でパス名を変換後、ロードを行い、main 手続きを実行する
 (define (msys-run :optional (path-data #f) (args '()))
-  (load (msys-path path-data))
+  (load (msys-path path-data "file : "))
   (%run-main args))
 
 
