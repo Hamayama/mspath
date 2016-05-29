@@ -1,5 +1,7 @@
 # mspath
 
+![image](image.png)
+
 ## 概要
 - Gauche の REPL 上で、Windows のパス名をそのまま読み込むためのモジュールです。
 
