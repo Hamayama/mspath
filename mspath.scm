@@ -1,7 +1,7 @@
 ;; -*- coding: utf-8 -*-
 ;;
 ;; mspath.scm
-;; 2016-4-25 v1.07
+;; 2016-5-29 v1.08
 ;;
 ;; ＜内容＞
 ;;   Gauche の REPL 上で、Windows のパス名をそのまま読み込むためのモジュールです。
@@ -20,8 +20,8 @@
 
 
 ;; パス名の入力を待つ(内部処理用)
-(define (%read-line-path)
-  (display "file : ") (flush)
+(define (%read-line-path :optional (prompt #f))
+  (display (or prompt "file : ")) (flush)
   (if (version<=? (gauche-version) "0.9.4") (read-line))
   (read-line))
 
@@ -39,7 +39,7 @@
 ;;     例えば、以下のように変換される。
 ;;       '(c:\work\aaa.txt) → "c:\\work\\aaa.txt"
 ;;   ・パス名を省略すると、入力待ちになる。このときは '() は入力不要。
-(define (mspath :optional (path-data #f))
+(define (mspath :optional (path-data #f) (prompt #f))
   (let1 path-str
       (cond
        ((list? path-data)
@@ -54,7 +54,7 @@
               path-data)
          ""))
        ((not path-data)
-        (%read-line-path))
+        (%read-line-path prompt))
        (else
         (errorf "list or #f required, but got ~s" path-data)))
     (set! path-str (regexp-replace-all* path-str #/\"/ "")) ; GitHubの色表示対策 "))
@@ -64,7 +64,7 @@
 
 ;; mspath でパス名を変換後、cd を行う
 (define (mscd :optional (path-data #f))
-  (let1 path-str (mspath path-data)
+  (let1 path-str (mspath path-data "path : ")
     (unless (equal? path-str "")
       (sys-chdir path-str))))
 
@@ -87,11 +87,11 @@
 ;;       "/c/work/aaa.txt" → "C:\\work\\aaa.txt"
 ;;   ・パス名を省略すると、入力待ちになる。このときは、ダブルクォートは入力不要。
 ;;   ・外部プログラムの cygpath が必要。
-(define (msys-path :optional (path-data #f))
+(define (msys-path :optional (path-data #f) (prompt #f))
   (let1 path-str
       (cond
        ((not path-data)
-        (%read-line-path))
+        (%read-line-path prompt))
        (else
         (x->string path-data)))
     (set! path-str (regexp-replace-all* path-str #/\"/ "" #/'/ "")) ; GitHubの色表示対策 "))
@@ -110,7 +110,7 @@
 
 ;; msys-path でパス名を変換後、cd を行う
 (define (msys-cd :optional (path-data #f))
-  (let1 path-str (msys-path path-data)
+  (let1 path-str (msys-path path-data "path : ")
     (unless (equal? path-str "")
       (sys-chdir path-str))))
 
