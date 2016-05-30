@@ -1,7 +1,7 @@
 ;; -*- coding: utf-8 -*-
 ;;
 ;; mspath.scm
-;; 2016-5-29 v1.09
+;; 2016-5-30 v1.10
 ;;
 ;; ＜内容＞
 ;;   Gauche の REPL 上で、Windows のパス名をそのまま読み込むためのモジュールです。
@@ -43,16 +43,23 @@
   (let1 path-str
       (cond
        ((list? path-data)
-        (string-join
-         (map (lambda (d)
-                (if (string? d)
-                  (errorf "list element must not be string, but got ~s" d))
-                (let1 str (x->string d)
-                  (if (#/^\\/ str)
-                    str
-                    (string-append " " str))))
-              path-data)
-         ""))
+        (let1 space-flag #f
+          (fold (lambda (p1 path)
+                  ;(if (string? p1)
+                  ;  (errorf "list element must not be string, but got ~s" p1))
+                  (let1 str (x->string p1)
+                    (cond
+                     ((or (string? p1) (#/^[\s\x3000;]*$/ str))
+                      (set! space-flag #f)
+                      (string-append path str))
+                     ((or (#/^\\/ str) (not space-flag))
+                      (set! space-flag #t)
+                      (string-append path str))
+                     (else
+                      (set! space-flag #t)
+                      (string-append path " " str)))))
+                ""
+                path-data)))
        ((not path-data)
         (%read-line-path prompt))
        (else
