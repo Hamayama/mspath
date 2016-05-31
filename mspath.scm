@@ -1,7 +1,7 @@
 ;; -*- coding: utf-8 -*-
 ;;
 ;; mspath.scm
-;; 2016-5-30 v1.10
+;; 2016-5-31 v1.11
 ;;
 ;; ＜内容＞
 ;;   Gauche の REPL 上で、Windows のパス名をそのまま読み込むためのモジュールです。
@@ -11,7 +11,8 @@
 ;;
 (define-module mspath
   (use gauche.version)
-  (use srfi-13) ; string-trim-both用
+  (use file.util) ; home-directory用
+  (use srfi-13)   ; string-trim-both用
   (export
     mspath    mscd    mspwd    msload    msrun
     msys-path msys-cd msys-pwd msys-load msys-run
@@ -70,10 +71,13 @@
     path-str))
 
 ;; mspath でパス名を変換後、cd を行う
+;;   ・パス名が空のときは、ホームディレクトリに移動する
 (define (mscd :optional (path-data #f))
   (let1 path-str (mspath path-data)
-    (unless (equal? path-str "")
-      (sys-chdir path-str))))
+    (sys-chdir (if (equal? path-str "")
+                 (home-directory)
+                 path-str))
+    (sys-getcwd)))
 
 ;; pwd を行う (sys-getcwd の単なるエイリアス)
 (define mspwd sys-getcwd)
@@ -116,10 +120,13 @@
     path-str))
 
 ;; msys-path でパス名を変換後、cd を行う
+;;   ・パス名が空のときは、ホームディレクトリに移動する
 (define (msys-cd :optional (path-data #f))
   (let1 path-str (msys-path path-data)
-    (unless (equal? path-str "")
-      (sys-chdir path-str))))
+    (sys-chdir (if (equal? path-str "")
+                 (home-directory)
+                 path-str))
+    (sys-getcwd)))
 
 ;; pwd を行う (sys-getcwd の単なるエイリアス)
 (define msys-pwd sys-getcwd)
