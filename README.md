@@ -31,6 +31,8 @@
   (mspwd)      ; pwd を行います (sys-getcwd の単なるエイリアスです)。
   (msload)     ; mspath でパス名を入力後、ロードを行います。
   (msrun)      ; mspath でパス名を入力後、ロードを行い、main 手続きを実行します。
+               ; main 手続きに引数を渡す場合には、以下のようにしてください。
+               ;   (msrun #f '(arg0 arg1 ...))
 
 
   (mspath '(c:\work\aaa.txt))
@@ -42,6 +44,8 @@
                ; mspath でパス名を変換後、ロードを行います。
   (msrun  '(c:\work\ccc.scm))
                ; mspath でパス名を変換後、ロードを行い、main 手続きを実行します。
+               ; main 手続きに引数を渡す場合には、以下のようにしてください。
+               ;   (msrun '(c:\work\ccc.scm) '(arg0 arg1 ...))
 
 
   (msys-path)  ; 実行すると入力待ちになります。
@@ -53,6 +57,8 @@
   (msys-pwd)   ; pwd を行います (sys-getcwd の単なるエイリアスです)。
   (msys-load)  ; msys-path でパス名を入力後、ロードを行います。
   (msys-run)   ; msys-path でパス名を入力後、ロードを行い、main 手続きを実行します。
+               ; main 手続きに引数を渡す場合には、以下のようにしてください。
+               ;   (msys-run #f '(arg0 arg1 ...))
 
 
   (msys-path "/c/work/aaa.txt")
@@ -65,6 +71,8 @@
                ; msys-path でパス名を変換後、ロードを行います。
   (msys-run  "/c/work/ccc.scm")
                ; msys-path でパス名を変換後、ロードを行い、main 手続きを実行します。
+               ; main 手続きに引数を渡す場合には、以下のようにしてください。
+               ;   (msys-run "/c/work/ccc.scm" '(arg0 arg1 ...))
 
 
   (※1)このパス名は、ダブルクォートで囲われていてもいなくてもかまいません。
@@ -81,6 +89,7 @@
          /c/work/aaa.txt    → "C:\\work\\aaa.txt"
 
   (※4)このパス名は、ダブルクォートで囲って渡す必要があります。
+       (すなわち、文字列を渡す必要があります)
        例えば、以下のように変換されます。
          "/c/work/aaa.txt"  → "C:\\work\\aaa.txt"
 ```
@@ -115,6 +124,7 @@
 - 2016-5-29 v1.09 プロンプト表示見直し
 - 2016-5-30 v1.10 Windowsのパス名の引数で、空白文字が連続する場合の暫定対策
 - 2016-5-31 v1.11 mscd,msys-cdで、パス名が空のときはホームディレクトリに移動するようにした
+- 2016-6-2  v1.12 msys-path の引数のエラーチェック追加
 
 
 (2016-6-2)
