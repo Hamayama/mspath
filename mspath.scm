@@ -1,7 +1,7 @@
 ;; -*- coding: utf-8 -*-
 ;;
 ;; mspath.scm
-;; 2016-6-2 v1.12
+;; 2016-10-26 v1.13
 ;;
 ;; ＜内容＞
 ;;   Gauche の REPL 上で、Windows のパス名をそのまま読み込むためのモジュールです。
@@ -10,9 +10,10 @@
 ;;   https://github.com/Hamayama/mspath
 ;;
 (define-module mspath
-  (use gauche.version)
-  (use file.util) ; home-directory用
-  (use srfi-13)   ; string-trim-both用
+  (use gauche.version) ; version<=?用
+  (use gauche.process) ; process-output->string用
+  (use file.util)      ; home-directory用
+  (use srfi-13)        ; string-trim-both用
   (export
     mspath    mscd    mspwd    msload    msrun
     msys-path msys-cd msys-pwd msys-load msys-run
@@ -41,7 +42,7 @@
 ;;       '(c:\work\aaa.txt) → "c:\\work\\aaa.txt"
 ;;   ・パス名を省略すると、入力待ちになる。このときは '() は入力不要。
 (define (mspath :optional (path-data #f) (prompt #f))
-  (let1 path-str
+  (rlet1 path-str
       (cond
        ((list? path-data)
         (let1 space-flag #f
@@ -68,7 +69,7 @@
     (set! path-str (regexp-replace-all* path-str #/\"/ "")) ; GitHubの色表示対策 "))
     (set! path-str (string-trim-both path-str))
     ;(write path-str) (newline) (flush)
-    path-str))
+    ))
 
 ;; mspath でパス名を変換後、cd を行う
 ;;   ・パス名が空のときは、ホームディレクトリに移動する
@@ -99,7 +100,7 @@
 ;;   ・パス名を省略すると、入力待ちになる。このときは、ダブルクォートは入力不要。
 ;;   ・外部プログラムの cygpath が必要。
 (define (msys-path :optional (path-data #f) (prompt #f))
-  (let1 path-str
+  (rlet1 path-str
       (cond
        ((string? path-data)
         path-data)
@@ -110,16 +111,10 @@
     (set! path-str (regexp-replace-all* path-str #/\"/ "" #/'/ "")) ; GitHubの色表示対策 "))
     (set! path-str (string-trim-both path-str))
     (unless (equal? path-str "")
-      (set! path-str
-            (receive (out tempfile) (sys-mkstemp (format "~a/mspath-cygpath" (sys-tmpdir)))
-              (unwind-protect
-                  (begin
-                    (close-output-port out)
-                    (sys-system (format "cygpath -w '~a' > ~a" path-str tempfile))
-                    (with-input-from-file tempfile read-line))
-                (sys-unlink tempfile)))))
+      (set! path-str (process-output->string
+                      `("cmd.exe" "/c" "cygpath" "-w" ,path-str))))
     ;(write path-str) (newline) (flush)
-    path-str))
+    ))
 
 ;; msys-path でパス名を変換後、cd を行う
 ;;   ・パス名が空のときは、ホームディレクトリに移動する
