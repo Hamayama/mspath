@@ -1,7 +1,7 @@
 ;; -*- coding: utf-8 -*-
 ;;
 ;; mspath.scm
-;; 2017-10-15 v1.14
+;; 2017-10-15 v1.15
 ;;
 ;; ＜内容＞
 ;;   Gauche の REPL 上で、Windows のパス名をそのまま読み込むためのモジュールです。
@@ -22,8 +22,8 @@
 
 
 ;; パス名の入力を待つ(内部処理用)
-(define (%read-line-path :optional (prompt #f))
-  (display (or prompt "path : ")) (flush)
+(define (%read-line-path prompt)
+  (display prompt) (flush)
   (if (version<=? (gauche-version) "0.9.4") (read-line))
   (read-line))
 
@@ -39,7 +39,7 @@
 ;;     例えば、以下のように変換される。
 ;;       '(c:\work\aaa.txt) → "c:\\work\\aaa.txt"
 ;;   ・パス名を省略すると、入力待ちになる。このときは '() は入力不要。
-(define (mspath :optional (path-data #f) (prompt #f))
+(define (mspath :optional (path-data #f) :key (prompt "path : "))
   (rlet1 path-str
       (cond
        ((list? path-data)
@@ -70,8 +70,8 @@
 
 ;; mspath でパス名を変換後、cd を行う
 ;;   ・パス名が空のときは、ホームディレクトリに移動する
-(define (mscd :optional (path-data #f))
-  (let1 path-str (mspath path-data)
+(define (mscd :optional (path-data #f) :key (prompt "path : "))
+  (let1 path-str (mspath path-data :prompt prompt)
     (sys-chdir (if (equal? path-str "")
                  (home-directory)
                  path-str))
@@ -81,12 +81,12 @@
 (define mspwd sys-getcwd)
 
 ;; mspath でパス名を変換後、ロードを行う
-(define (msload :optional (path-data #f))
-  (load (mspath path-data "file : ")))
+(define (msload :optional (path-data #f) :key (prompt "file : "))
+  (load (mspath path-data :prompt prompt)))
 
 ;; mspath でパス名を変換後、ロードを行い、main 手続きを実行する
-(define (msrun :optional (path-data #f) (args '()))
-  (load (mspath path-data "file : "))
+(define (msrun :optional (path-data #f) (args '()) :key (prompt "file : "))
+  (load (mspath path-data :prompt prompt))
   (%run-main args))
 
 
@@ -96,7 +96,7 @@
 ;;       "/c/work/aaa.txt" → "C:\\work\\aaa.txt"
 ;;   ・パス名を省略すると、入力待ちになる。このときは、ダブルクォートは入力不要。
 ;;   ・外部プログラムの cygpath が必要。
-(define (msys-path :optional (path-data #f) (prompt #f))
+(define (msys-path :optional (path-data #f) :key (prompt "path : "))
   (rlet1 path-str
       (cond
        ((string? path-data)
@@ -115,8 +115,8 @@
 
 ;; msys-path でパス名を変換後、cd を行う
 ;;   ・パス名が空のときは、ホームディレクトリに移動する
-(define (msys-cd :optional (path-data #f))
-  (let1 path-str (msys-path path-data)
+(define (msys-cd :optional (path-data #f) :key (prompt "path : "))
+  (let1 path-str (msys-path path-data :prompt prompt)
     (sys-chdir (if (equal? path-str "")
                  (home-directory)
                  path-str))
@@ -126,12 +126,12 @@
 (define msys-pwd sys-getcwd)
 
 ;; msys-path でパス名を変換後、ロードを行う
-(define (msys-load :optional (path-data #f))
-  (load (msys-path path-data "file : ")))
+(define (msys-load :optional (path-data #f) :key (prompt "file : "))
+  (load (msys-path path-data :prompt prompt)))
 
 ;; msys-path でパス名を変換後、ロードを行い、main 手続きを実行する
-(define (msys-run :optional (path-data #f) (args '()))
-  (load (msys-path path-data "file : "))
+(define (msys-run :optional (path-data #f) (args '()) :key (prompt "file : "))
+  (load (msys-path path-data :prompt prompt))
   (%run-main args))
 
 
