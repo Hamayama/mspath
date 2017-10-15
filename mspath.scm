@@ -1,7 +1,7 @@
 ;; -*- coding: utf-8 -*-
 ;;
 ;; mspath.scm
-;; 2016-10-26 v1.13
+;; 2017-10-15 v1.14
 ;;
 ;; ＜内容＞
 ;;   Gauche の REPL 上で、Windows のパス名をそのまま読み込むためのモジュールです。
@@ -30,9 +30,7 @@
 ;; main 手続きを実行する(内部処理用)
 (define (%run-main args)
   (if (global-variable-bound? 'user 'main)
-    (with-module user (if (procedure? main)
-                        (main args)
-                        0))
+    (with-module user (main args))
     0))
 
 
@@ -46,26 +44,25 @@
       (cond
        ((list? path-data)
         (let1 space-flag #f
-          (fold (lambda (p1 path)
-                  ;(if (string? p1)
-                  ;  (errorf "list element must not be string, but got ~s" p1))
-                  (let1 str (x->string p1)
-                    (cond
-                     ((or (string? p1) (#/^[\s\x3000;]*$/ str))
-                      (set! space-flag #f)
-                      (string-append path str))
-                     ((or (#/^\\/ str) (not space-flag))
-                      (set! space-flag #t)
-                      (string-append path str))
-                     (else
-                      (set! space-flag #t)
-                      (string-append path " " str)))))
-                ""
-                path-data)))
+          (fold
+           (lambda (p1 path)
+             (let1 str (x->string p1)
+               (cond
+                ((or (string? p1) (#/^[\s\x3000;]*$/ str))
+                 (set! space-flag #f)
+                 (string-append path str))
+                ((or (#/^\\/ str) (not space-flag))
+                 (set! space-flag #t)
+                 (string-append path str))
+                (else
+                 (set! space-flag #t)
+                 (string-append path " " str)))))
+           ""
+           path-data)))
        ((not path-data)
         (%read-line-path prompt))
        (else
-        (errorf "list or #f required, but got ~s" path-data)))
+        (error "list or #f required, but got" path-data)))
     (set! path-str (regexp-replace-all* path-str #/\"/ "")) ; GitHubの色表示対策 "))
     (set! path-str (string-trim-both path-str))
     ;(write path-str) (newline) (flush)
@@ -107,7 +104,7 @@
        ((not path-data)
         (%read-line-path prompt))
        (else
-        (errorf "string or #f required, but got ~s" path-data)))
+        (error "string or #f required, but got" path-data)))
     (set! path-str (regexp-replace-all* path-str #/\"/ "" #/'/ "")) ; GitHubの色表示対策 "))
     (set! path-str (string-trim-both path-str))
     (unless (equal? path-str "")
